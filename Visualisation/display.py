@@ -31,7 +31,20 @@ def safe_addstr(stdscr: 'curses.window', y: int, x: int,
     stdscr.addstr(y, x, text, attr)
 
 
-def draw_maze(stdscr: 'curses.window', maze: Maze,
+def has_wall(cell_value: int, direction: str) -> bool:
+    """Return True if the wall exists in the given direction."""
+    if direction == 'N':
+        return bool(cell_value & 1)
+    if direction == 'E':
+        return bool(cell_value & 2)
+    if direction == 'S':
+        return bool(cell_value & 4)
+    if direction == 'W':
+        return bool(cell_value & 8)
+    return False
+
+
+def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
               wall_color: int) -> None:
     """Draw the maze walls and cell contents on screen."""
     wall_attr = curses.color_pair(wall_color)
@@ -41,21 +54,19 @@ def draw_maze(stdscr: 'curses.window', maze: Maze,
 
     for y in range(maze.height):
         for x in range(maze.width):
-            cell = maze.get_cell(x, y)
-            if not cell:
-                continue
+            cell = maze.grid[y][x]
 
             screen_x = x * 4
             screen_y = y * 2
 
             safe_addstr(stdscr, screen_y, screen_x, "█", wall_attr)
 
-            if cell.has_wall('N'):
+            if has_wall(cell, 'N'):
                 safe_addstr(stdscr, screen_y, screen_x + 1, "███", wall_attr)
             else:
                 safe_addstr(stdscr, screen_y, screen_x + 1, "   ", 0)
 
-            if cell.has_wall('W'):
+            if has_wall(cell, 'W'):
                 safe_addstr(stdscr, screen_y + 1, screen_x, "█", wall_attr)
             else:
                 safe_addstr(stdscr, screen_y + 1, screen_x, " ", 0)
@@ -71,29 +82,25 @@ def draw_maze(stdscr: 'curses.window', maze: Maze,
                             "   ", 0)
 
     for y in range(maze.height):
-        right_cell = maze.get_cell(maze.width - 1, y)
-        if not right_cell:
-            continue
+        right_cell = maze.grid[y][maze.width - 1]
 
         screen_x = maze.width * 4
         screen_y = y * 2
 
         safe_addstr(stdscr, screen_y, screen_x, "█", wall_attr)
-        if right_cell.has_wall('E'):
+        if has_wall(right_cell, 'E'):
             safe_addstr(stdscr, screen_y + 1, screen_x, "█", wall_attr)
         else:
             safe_addstr(stdscr, screen_y + 1, screen_x, " ", 0)
 
     for x in range(maze.width):
-        bottom_cell = maze.get_cell(x, maze.height - 1)
-        if not bottom_cell:
-            continue
+        bottom_cell = maze.grid[maze.height - 1][x]
 
         screen_x = x * 4
         screen_y = maze.height * 2
 
         safe_addstr(stdscr, screen_y, screen_x, "█", wall_attr)
-        if bottom_cell.has_wall('S'):
+        if has_wall(bottom_cell, 'S'):
             safe_addstr(stdscr, screen_y, screen_x + 1, "███", wall_attr)
         else:
             safe_addstr(stdscr, screen_y, screen_x + 1, "   ", 0)
@@ -119,16 +126,16 @@ def draw_menu(stdscr: 'curses.window',
 
 def generate_maze(width: int, height: int, entry: Tuple[int, int],
                   exit_pos: Tuple[int, int], perfect: bool,
-                  seed: int) -> Maze:
+                  seed: int) -> MazeGenerator:
     """Generate and return a maze."""
-    gen = MazeGenerator(width=width, height=height,
-                        perfect=perfect, seed=seed)
-    return gen.generate(entry=entry, exit=exit_pos)
+    gen = MazeGenerator(width, height, seed, entry=entry,
+                        exit=exit_pos, perfect=perfect)
+    gen.generate()
+    return gen
 
 
 def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
-    """Main loop: draw the maze and menu, wait for a key,
-    either C or Q or P or R, handle it, repeat."""
+    """Main loop: draw the maze and menu, wait for a key, handle it."""
     setup_colors()
 
     width: int = config['WIDTH']

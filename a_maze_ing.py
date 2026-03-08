@@ -8,12 +8,13 @@ from Visualisation.display import run_display
 
 def build_generator(config: dict[str, Any]) -> MazeGenerator:
     """Create and return the maze generator from parsed config."""
-    perfect = config["PERFECT"]
-
     return MazeGenerator(
-        width=config["WIDTH"],
-        height=config["HEIGHT"],
-        perfect=perfect,
+        config["WIDTH"],
+        config["HEIGHT"],
+        config["SEED"],
+        entry=config["ENTRY"],
+        exit=config["EXIT"],
+        perfect=config["PERFECT"],
     )
 
 
@@ -28,8 +29,7 @@ def main() -> None:
     try:
         config = parse_config(config_path)
         generator = build_generator(config)
-        maze = generator.generate(config["ENTRY"], config["EXIT"])
-        generator.save_to_file(maze, config["OUTPUT_FILE"])
+        maze = generator.generate()
         run_display(config)
     except Exception as e:
         print(f"Error: {e}")
