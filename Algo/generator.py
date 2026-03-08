@@ -14,6 +14,8 @@ class MazeGenerator:
         self.seed = seed
         random.seed(seed)
 
+        self.pattern_42 = set()  # WALID: this stores all (x, y) cells of the 42
+
         # Initialisation : 15 signifie que les 4 murs sont fermés (1+2+4+8)
         self.grid = [[15 for _ in range(largeur)] for _ in range(hauteur)]
         self.visite = [[False for _ in range(largeur)] for _ in range(hauteur)]
@@ -58,6 +60,7 @@ class MazeGenerator:
             if 0 <= x < self.width and 0 <= y < self.height:
                 self.visite[y][x] = True
                 self.grid[y][x] = 15
+                self.pattern_42.add((x, y))  # WALID: this remembers that cell is part of the 42
 
         for x, y in coords_2:
             # On vérifie les limites pour ne pas sortir de la grille
@@ -66,6 +69,7 @@ class MazeGenerator:
                 self.visite[y][x] = True
                 # 2. On garde la valeur 15 pour que ce soit un bloc de murs pleins
                 self.grid[y][x] = 15
+                self.pattern_42.add((x, y))  # WALID: this remembers that this cell is part of the 42
 
     def generate(self, start_x=None, start_y=None):
         """ Génère  en respectant les murs Nord=1, Est=2, Sud=4, Ouest=8 """
@@ -79,7 +83,7 @@ class MazeGenerator:
                 f"Point de depart ({start_x}, {start_y}) hors limits for"
                 f"grid {self.width}x{self.height}"
             )
-        
+
         pile = [(start_x, start_y)]
         self.visite[start_y][start_x] = True
 
@@ -104,11 +108,11 @@ class MazeGenerator:
             if voisins_possibles:
                 # Choisir un chemin au hasard
                 nx, ny, m_actuel, m_voisin = random.choice(voisins_possibles)
-                
+
                 # Casser les murs entre la cellule actuelle et la cellule voisine
                 self.grid[cy][cx] -= m_actuel
                 self.grid[ny][nx] -= m_voisin
-                
+
                 self.visite[ny][nx] = True
                 pile.append((nx, ny))
             else:
@@ -121,7 +125,7 @@ class MazeGenerator:
             for x in range(self.width):
                 ligne_n += "+---" if (self.grid[y][x] & 1) else "+   "
             print(ligne_n + "+")
-            
+
             # Ligne des couloirs et murs Ouest/Est
             ligne_c = ""
             for x in range(self.width):
@@ -133,6 +137,6 @@ class MazeGenerator:
         print("+---" * self.width + "+")
 
 if __name__ == "__main__":
-    mon_laby = MazeGenerator(15, 11, 40,entry=(2, 0), exit=(7, 3))
+    mon_laby = MazeGenerator(15, 11, 40, entry=(2, 0), exit=(7, 3))
     mon_laby.generate()
     mon_laby.afficher_ascii()

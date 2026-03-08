@@ -29,7 +29,7 @@ def main() -> None:
     try:
         config = parse_config(config_path)
         generator = build_generator(config)
-        maze = generator.generate()
+        generator.generate()
         run_display(config)
     except Exception as e:
         print(f"Error: {e}")

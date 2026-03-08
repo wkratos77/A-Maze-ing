@@ -49,6 +49,7 @@ def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
     """Draw the maze walls and cell contents on screen."""
     wall_attr = curses.color_pair(wall_color)
     entry_attr = curses.color_pair(6) | curses.A_BOLD
+    pattern_attr = curses.color_pair(5)
     entry_x, entry_y = maze.entry
     exit_x, exit_y = maze.exit
 
@@ -77,6 +78,9 @@ def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
             elif x == exit_x and y == exit_y:
                 safe_addstr(stdscr, screen_y + 1, screen_x + 1,
                             " X ", entry_attr)
+            elif (x, y) in maze.pattern_42:
+                safe_addstr(stdscr, screen_y + 1, screen_x + 1,
+                            "   ", pattern_attr)
             else:
                 safe_addstr(stdscr, screen_y + 1, screen_x + 1,
                             "   ", 0)
@@ -169,4 +173,7 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
 
 def run_display(config: Dict[str, Any]) -> None:
     """Entry point: start the curses visualizer."""
-    curses.wrapper(lambda stdscr: main_loop(stdscr, config))
+    try:
+        curses.wrapper(lambda stdscr: main_loop(stdscr, config))
+    except KeyboardInterrupt:
+        pass
