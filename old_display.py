@@ -6,9 +6,6 @@ from Algo.generator import MazeGenerator
 
 COLOR_NAMES: List[str] = ["White", "Green", "Red", "Blue"]
 
-CELL_WIDTH = 5
-CELL_HEIGHT = 2
-
 
 def setup_colors() -> None:
     """Initialize color pairs for curses."""
@@ -60,66 +57,65 @@ def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
         for x in range(maze.width):
             cell = maze.grid[y][x]
 
-            screen_x = x * CELL_WIDTH
-            screen_y = y * CELL_HEIGHT
+            screen_x = x * 4
+            screen_y = y * 2
 
-            safe_addstr(stdscr, screen_y, screen_x, "██", wall_attr)
+            safe_addstr(stdscr, screen_y, screen_x, "█", wall_attr)
 
             if has_wall(cell, 'N'):
-                safe_addstr(stdscr, screen_y, screen_x + 2, "███", wall_attr)
+                safe_addstr(stdscr, screen_y, screen_x + 1, "███", wall_attr)
             else:
-                safe_addstr(stdscr, screen_y, screen_x + 2, "   ", 0)
+                safe_addstr(stdscr, screen_y, screen_x + 1, "   ", 0)
 
             if has_wall(cell, 'W'):
-                safe_addstr(stdscr, screen_y + 1, screen_x, "██", wall_attr)
+                safe_addstr(stdscr, screen_y + 1, screen_x, "█", wall_attr)
             else:
-                safe_addstr(stdscr, screen_y + 1, screen_x, "  ", 0)
+                safe_addstr(stdscr, screen_y + 1, screen_x, " ", 0)
 
             if x == entry_x and y == entry_y:
-                safe_addstr(stdscr, screen_y + 1, screen_x + 2,
+                safe_addstr(stdscr, screen_y + 1, screen_x + 1,
                             " E ", entry_attr)
             elif x == exit_x and y == exit_y:
-                safe_addstr(stdscr, screen_y + 1, screen_x + 2,
+                safe_addstr(stdscr, screen_y + 1, screen_x + 1,
                             " X ", entry_attr)
             elif (x, y) in maze.pattern_42:
-                safe_addstr(stdscr, screen_y + 1, screen_x + 2,
+                safe_addstr(stdscr, screen_y + 1, screen_x + 1,
                             "   ", pattern_attr)
             else:
-                safe_addstr(stdscr, screen_y + 1, screen_x + 2,
+                safe_addstr(stdscr, screen_y + 1, screen_x + 1,
                             "   ", 0)
 
     for y in range(maze.height):
         right_cell = maze.grid[y][maze.width - 1]
 
-        screen_x = maze.width * CELL_WIDTH
-        screen_y = y * CELL_HEIGHT
+        screen_x = maze.width * 4
+        screen_y = y * 2
 
-        safe_addstr(stdscr, screen_y, screen_x, "██", wall_attr)
+        safe_addstr(stdscr, screen_y, screen_x, "█", wall_attr)
         if has_wall(right_cell, 'E'):
-            safe_addstr(stdscr, screen_y + 1, screen_x, "██", wall_attr)
+            safe_addstr(stdscr, screen_y + 1, screen_x, "█", wall_attr)
         else:
-            safe_addstr(stdscr, screen_y + 1, screen_x, "  ", 0)
+            safe_addstr(stdscr, screen_y + 1, screen_x, " ", 0)
 
     for x in range(maze.width):
         bottom_cell = maze.grid[maze.height - 1][x]
 
-        screen_x = x * CELL_WIDTH
-        screen_y = maze.height * CELL_HEIGHT
+        screen_x = x * 4
+        screen_y = maze.height * 2
 
-        safe_addstr(stdscr, screen_y, screen_x, "██", wall_attr)
+        safe_addstr(stdscr, screen_y, screen_x, "█", wall_attr)
         if has_wall(bottom_cell, 'S'):
-            safe_addstr(stdscr, screen_y, screen_x + 2, "███", wall_attr)
+            safe_addstr(stdscr, screen_y, screen_x + 1, "███", wall_attr)
         else:
-            safe_addstr(stdscr, screen_y, screen_x + 2, "   ", 0)
+            safe_addstr(stdscr, screen_y, screen_x + 1, "   ", 0)
 
-    safe_addstr(stdscr, maze.height * CELL_HEIGHT,
-                maze.width * CELL_WIDTH, "██", wall_attr)
+    safe_addstr(stdscr, maze.height * 2, maze.width * 4, "█", wall_attr)
 
 
 def draw_menu(stdscr: 'curses.window',
               color_index: int, maze_height: int) -> None:
     """Draw the controls menu below the maze."""
-    menu_y = maze_height * CELL_HEIGHT + 2
+    menu_y = maze_height * 2 + 2
     max_y, _ = stdscr.getmaxyx()
     if menu_y + 1 >= max_y:
         return
