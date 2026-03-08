@@ -2,7 +2,7 @@ import sys
 from typing import Any
 
 from Visualisation.parsing import parse_config
-from Algo.generator import MazeGenerator
+from Mazegen.generator import MazeGenerator
 from Visualisation.display import run_display
 
 
@@ -29,7 +29,7 @@ def main() -> None:
     try:
         config = parse_config(config_path)
         generator = build_generator(config)
-        generator.generate()
+        generator.generate_imperfect_maze()
         run_display(config)
     except Exception as e:
         print(f"Error: {e}")

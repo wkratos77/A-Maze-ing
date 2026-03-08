@@ -78,7 +78,7 @@ class MazeGenerator:
                 # WALID: this remembers that this cell is part of the 42
                 self.pattern_42.add((x, y))
 
-    def generate(self, start_x=None, start_y=None):
+    def generate_perfect_maze(self, start_x=None, start_y=None):
         """ Génère  en respectant les murs Nord=1, Est=2, Sud=4, Ouest=8 """
         self.showing_42()
         if self.entry in self.pattern_42:
@@ -102,7 +102,6 @@ class MazeGenerator:
 
         pile = [(start_x, start_y)]
         self.visite[start_y][start_x] = True
-        first_iteration = True
 
         # Directions : (dx, dy, valeur_mur_actuel, valeur_mur_voisin)
         directions = [
@@ -126,21 +125,6 @@ class MazeGenerator:
                 # Choisir un chemin au hasard
                 nx, ny, m_actuel, m_voisin = random.choice(voisins_possibles)
 
-                if first_iteration:
-                    # First move only: open one additional valid direction
-                    # from the same cell, different from the chosen move.
-                    alternatives = [
-                        v for v in voisins_possibles
-                        if not (v[0] == nx and v[1] == ny)
-                    ]
-                    if alternatives:
-                        ax, ay, a_m_actuel, a_m_voisin = random.choice(
-                            alternatives
-                        )
-                        self.grid[cy][cx] -= a_m_actuel
-                        self.grid[ay][ax] -= a_m_voisin
-                    first_iteration = False
-
                 # Casser les murs entre la cellule actuelle, la cellule voisine
                 self.grid[cy][cx] -= m_actuel
                 self.grid[ny][nx] -= m_voisin
@@ -149,3 +133,71 @@ class MazeGenerator:
                 pile.append((nx, ny))
             else:
                 pile.pop()  # On revient en arrière (Backtracking)
+
+    def generate_imperfect_maze(self, start_x=None, start_y=None):
+        """Generate a maze with loops (more than one path between points)."""
+        # building a maze, then removing some walls
+        self.generate_perfect_maze(start_x=start_x, start_y=start_y)
+
+        # Keep only East and South checks to not removing two times the wall
+        directions = [
+            (1, 0, 2, 8),  # Est
+            (0, 1, 4, 1),  # Sud
+        ]
+
+        breakable_walls = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if (x, y) in self.pattern_42:
+                    continue
+                for dx, dy, m_actuel, m_voisin in directions:
+                    nx, ny = x + dx, y + dy
+                    if not (0 <= nx < self.width and 0 <= ny < self.height):
+                        continue
+                    if (nx, ny) in self.pattern_42:
+                        continue
+                    # Candidate is valid only if a separating wall still exists
+                    if ((self.grid[y][x] & m_actuel) and
+                            (self.grid[ny][nx] & m_voisin)):
+                        breakable_walls.append(
+                                    (x, y, nx, ny, m_actuel, m_voisin))
+
+        # opening some walls to get extra paths
+        if breakable_walls:
+            wall_to_open = max(1, len(breakable_walls) // 10)
+        else:
+            wall_to_open = 0
+        random.shuffle(breakable_walls)
+        for x, y, nx, ny, m_actuel, m_voisin in breakable_walls[:wall_to_open]:
+            self.grid[y][x] -= m_actuel
+            self.grid[ny][nx] -= m_voisin
+
+    def afficher_ascii(self):
+        for y in range(self.height):
+            # Ligne des murs Nord
+            ligne_n = ""
+            for x in range(self.width):
+                ligne_n += "+---" if (self.grid[y][x] & 1) else "+   "
+            print(ligne_n + "+")
+            # Ligne des couloirs et murs Ouest/Est
+            ligne_c = ""
+            for x in range(self.width):
+                if (x, y) == self.entry or (x, y) == self.exit:
+                    mark = "*"
+                else:
+                    mark = " "
+                # On utilise & 8 pour vérifier si le mur Ouest est présent
+                if (self.grid[y][x] & 8):
+                    ligne_c += f"| {mark} "
+                else:
+                    ligne_c += f"  {mark} "
+            print(ligne_c + "|")
+        # Ligne des murs Sud pour la dernière ligne
+        print("+---" * self.width + "+")
+
+
+if __name__ == "__main__":
+    # Exemple d'utilisation
+    mg = MazeGenerator(15, 10, 42, (1, 0), (14, 9), perfect=True)
+    mg.generate_imperfect_maze()
+    mg.afficher_ascii()

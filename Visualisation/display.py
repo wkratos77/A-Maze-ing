@@ -1,7 +1,7 @@
 import curses
 import random
 from typing import List, Tuple, Dict, Any
-from Algo.generator import MazeGenerator
+from Mazegen.generator import MazeGenerator
 
 
 COLOR_NAMES: List[str] = ["White", "Green", "Red", "Blue"]
@@ -138,7 +138,7 @@ def generate_maze(width: int, height: int, entry: Tuple[int, int],
     """Generate and return a maze."""
     gen = MazeGenerator(width, height, seed, entry=entry,
                         exit=exit_pos, perfect=perfect)
-    gen.generate()
+    gen.generate_imperfect_maze()
     return gen
 
 
