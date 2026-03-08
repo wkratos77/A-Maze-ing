@@ -29,8 +29,14 @@ def main() -> None:
     try:
         config = parse_config(config_path)
         generator = build_generator(config)
-        generator.generate_imperfect_maze()
+
+        if config["PERFECT"]:
+            generator.generate_perfect_maze()
+        else:
+            generator.generate_imperfect_maze()
+
         run_display(config)
+
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)

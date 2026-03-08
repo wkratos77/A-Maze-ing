@@ -138,7 +138,10 @@ def generate_maze(width: int, height: int, entry: Tuple[int, int],
     """Generate and return a maze."""
     gen = MazeGenerator(width, height, seed, entry=entry,
                         exit=exit_pos, perfect=perfect)
-    gen.generate_imperfect_maze()
+    if perfect == False:
+        gen.generate_imperfect_maze()
+    else:
+        gen.generate_perfect_maze()
     return gen
 
 
