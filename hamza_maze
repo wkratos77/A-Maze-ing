@@ -1,7 +1,7 @@
 import random
 
 class MazeGenerator:
-    def __init__(self, largeur, hauteur, entry=(0, 0), exit=None, seed=None):
+    def __init__(self, largeur, hauteur, seed:int, entry=(0, 0), exit=None, perfect: bool = True):
         self.width = largeur
         self.height = hauteur
         if exit is None:
@@ -10,8 +10,8 @@ class MazeGenerator:
         self.entry = self.validate_point(entry, "entry")
         self.exit = self.validate_point(exit, "exit")
 
-        if seed is not None:
-            random.seed(seed)
+        self.seed = seed
+        random.seed(seed)
         
         # Initialisation : 15 signifie que les 4 murs sont fermés (1+2+4+8)
         self.grid = [[15 for _ in range(largeur)] for _ in range(hauteur)]
@@ -124,13 +124,14 @@ class MazeGenerator:
             # Ligne des couloirs et murs Ouest/Est
             ligne_c = ""
             for x in range(self.width):
+                mark = "*" if (x, y) == self.entry or (x, y) == self.exit else " "
                 # On utilise & 8 pour vérifier si le mur Ouest est présent
-                ligne_c += "|   " if (self.grid[y][x] & 8) else "    "
+                ligne_c += f"| {mark} " if (self.grid[y][x] & 8) else f"  {mark} "
             print(ligne_c + "|")
         # Ligne des murs Sud pour la dernière ligne
         print("+---" * self.width + "+")
 
 if __name__ == "__main__":
-    mon_laby = MazeGenerator(15, 11, entry=(2, 0), exit=(7, 3))
+    mon_laby = MazeGenerator(15, 11, 42,entry=(2, 0), exit=(7, 3))
     mon_laby.generate()
     mon_laby.afficher_ascii()
