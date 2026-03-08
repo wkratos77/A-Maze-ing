@@ -1,7 +1,7 @@
 import sys
 from typing import Any
 
-from Visualisation.configparsing import parse_config
+from Visualisation.parsing import parse_config
 from Algo.generator import MazeGenerator
 from Visualisation.display import run_display
 
@@ -30,7 +30,7 @@ def main() -> None:
         generator = build_generator(config)
         maze = generator.generate(config["ENTRY"], config["EXIT"])
         generator.save_to_file(maze, config["OUTPUT_FILE"])
-        run_display(maze, config, generator)
+        run_display(config)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
