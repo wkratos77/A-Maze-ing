@@ -38,7 +38,7 @@ class MazeGenerator:
     def showing_42(self):
         """showing '42' at the center"""
         if self.width < 11 or self.height < 7:
-            print("Grid to small to show'42'")
+            raise ValueError("Grid too small to show'42'")
             return
 
         mid_x, mid_y = self.width // 2, self.height // 2
