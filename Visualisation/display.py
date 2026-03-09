@@ -5,6 +5,7 @@ from Mazegen.generator import MazeGenerator
 
 
 COLOR_NAMES: List[str] = ["White", "Green", "Red", "Blue"]
+PATTERN_COLOR_NAMES = ["Yellow", "Cyan", "Green BG", "Red BG"]
 
 CELL_WIDTH = 5
 CELL_HEIGHT = 2
@@ -48,11 +49,11 @@ def has_wall(cell_value: int, direction: str) -> bool:
 
 
 def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
-              wall_color: int) -> None:
+              wall_color: int, pattern_color: int) -> None:
     """Draw the maze walls and cell contents on screen."""
     wall_attr = curses.color_pair(wall_color)
     entry_attr = curses.color_pair(6) | curses.A_BOLD
-    pattern_attr = curses.color_pair(5)
+    pattern_attr = curses.color_pair(pattern_color)
     entry_x, entry_y = maze.entry
     exit_x, exit_y = maze.exit
 
@@ -117,7 +118,7 @@ def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
 
 
 def draw_menu(stdscr: 'curses.window',
-              color_index: int, maze_height: int) -> None:
+              color_index: int, pattern_index: int, maze_height: int) -> None:
     """Draw the controls menu below the maze."""
     menu_y = maze_height * CELL_HEIGHT + 2
     max_y, _ = stdscr.getmaxyx()
@@ -125,11 +126,15 @@ def draw_menu(stdscr: 'curses.window',
         return
 
     color_text = COLOR_NAMES[color_index]
+    pattern_text = PATTERN_COLOR_NAMES[pattern_index]
 
     safe_addstr(stdscr, menu_y, 0,
-                "[R] Regenerate  [C] Color  [Q] Quit", curses.A_BOLD)
+                "[R] Regenerate  [C] Change Color  [Q] Quit "
+                "[T] Change 42 Color\n", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 1, 0,
-                f"Color: {color_text}", curses.A_BOLD)
+            f"Wall: {color_text}", curses.A_BOLD)
+    safe_addstr(stdscr, menu_y + 1, 20,
+            f"42: {pattern_text}", curses.A_BOLD)
 
 
 def generate_maze(width: int, height: int, entry: Tuple[int, int],
@@ -138,7 +143,7 @@ def generate_maze(width: int, height: int, entry: Tuple[int, int],
     """Generate and return a maze."""
     gen = MazeGenerator(width, height, seed, entry=entry,
                         exit=exit_pos, perfect=perfect)
-    if perfect == False:
+    if perfect is False:
         gen.generate_imperfect_maze()
     else:
         gen.generate_perfect_maze()
@@ -161,10 +166,14 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
     color_index: int = 0
     color_list: List[int] = [1, 2, 3, 4]
 
+    pattern_colors = [5, 7, 8, 9]
+    pattern_index = 0
+
     while True:
         stdscr.clear()
-        draw_maze(stdscr, maze, color_list[color_index])
-        draw_menu(stdscr, color_index, maze.height)
+        draw_maze(stdscr, maze, color_list[color_index],
+                  pattern_colors[pattern_index])
+        draw_menu(stdscr, color_index, pattern_index, maze.height)
         stdscr.refresh()
 
         key = stdscr.getch()
@@ -176,6 +185,8 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
             maze = generate_maze(width, height, entry, exit_pos, perfect, seed)
         elif key in (ord('c'), ord('C')):
             color_index = (color_index + 1) % len(color_list)
+        elif key in (ord('t'), ord('T')):
+            pattern_index = (pattern_index + 1) % len(pattern_colors)
 
 
 def run_display(config: Dict[str, Any]) -> None:
