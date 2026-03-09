@@ -9,7 +9,19 @@ def buffread(filepath: str) -> list[str]:
         with open(filepath, 'r') as fd:
             read = fd.read().splitlines()
     except FileNotFoundError:
-        print(f"File {filepath} not found.")
+        print(f"Error: file '{filepath}' not found.")
+        sys.exit(1)
+    except PermissionError:
+        print(f"Error: permission denied for '{filepath}'.")
+        sys.exit(1)
+    except IsADirectoryError:
+        print(f"Error: '{filepath}' is a directory, not a file.")
+        sys.exit(1)
+    except UnicodeDecodeError:
+        print(f"Error: file '{filepath}' is not a valid text file.")
+        sys.exit(1)
+    except OSError as e:
+        print(f"Error while reading '{filepath}': {e}")
         sys.exit(1)
     if len(read) == 0:
         print("File is empty.")
@@ -27,6 +39,9 @@ def get_lines(lines: list[str]) -> list[str]:
         if line.strip() == '':
             continue
         clean.append(line.strip())
+    if not clean:
+        print("Error: configuration file contains no valid lines.")
+        sys.exit(1)
     return clean
 
 
@@ -148,10 +163,10 @@ def convert_perfect(config: dict[str, Any]) -> None:
 
 def convert_seed(config: dict[str, Any]) -> None:
     """Convert optional SEED to int."""
-    if "SEED" not in config:
-        return
-
     raw = config["SEED"]
+    if raw is None:
+        print("Error: missing key SEED.")
+        sys.exit(1)
     try:
         config["SEED"] = int(raw)
     except ValueError:
@@ -165,14 +180,17 @@ def parse_config(filepath: str) -> dict[str, Any]:
     buff = buffread(filepath)
     lines = get_lines(buff)
     config = {}
+    required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT", "SEED"]
     for line in lines:
         kv = get_key_value(line)
         k = next(iter(kv))
         if k in config:
             print(f"Error: Duplicate key {k}")
             sys.exit(1)
+        if k not in required:
+            print(f"Error: Unknown key {k}")
+            sys.exit(1)
         config.update(kv)
-    required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
     for key in required:
         if key not in config:
             print(f"Error: Missing mandatory key {key}")
