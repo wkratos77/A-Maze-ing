@@ -132,9 +132,9 @@ def draw_menu(stdscr: 'curses.window',
                 "[R] Regenerate  [C] Change Color  [Q] Quit "
                 "[T] Change 42 Color\n", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 1, 0,
-            f"Wall: {color_text}", curses.A_BOLD)
+                f"Wall: {color_text}", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 1, 20,
-            f"42: {pattern_text}", curses.A_BOLD)
+                f"42: {pattern_text}", curses.A_BOLD)
 
 
 def generate_maze(width: int, height: int, entry: Tuple[int, int],

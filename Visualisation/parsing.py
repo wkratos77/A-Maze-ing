@@ -180,7 +180,8 @@ def parse_config(filepath: str) -> dict[str, Any]:
     buff = buffread(filepath)
     lines = get_lines(buff)
     config = {}
-    required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT", "SEED"]
+    required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE",
+                "PERFECT", "SEED"]
     for line in lines:
         kv = get_key_value(line)
         k = next(iter(kv))
