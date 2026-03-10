@@ -1,4 +1,5 @@
 import random
+from show_the_exit import find_the_way, print_maze_with_path
 
 
 class MazeGenerator:
@@ -197,7 +198,13 @@ class MazeGenerator:
 
 
 if __name__ == "__main__":
-    # Exemple d'utilisation
-    mg = MazeGenerator(15, 10, 42, (1, 0), (14, 9), perfect=True)
+    mg = MazeGenerator(15, 10, 42, (0, 1), (14, 9), perfect=True)
     mg.generate_imperfect_maze()
     mg.afficher_ascii()
+    path = find_the_way(mg)
+    if path:
+        print("\nSUCCESS! Here is the path:")
+        print_maze_with_path(mg, path)
+        print(f"Total steps: {len(path)}")
+    else:
+        print("No path found.")
