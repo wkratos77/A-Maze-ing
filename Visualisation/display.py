@@ -2,6 +2,7 @@ import curses
 import random
 from typing import List, Tuple, Dict, Any
 from Mazegen.generator import MazeGenerator
+from Mazegen.show_the_exit import find_the_way
 
 
 COLOR_NAMES: List[str] = ["White", "Green", "Red", "Blue"]
@@ -24,6 +25,7 @@ def setup_colors() -> None:
     curses.init_pair(7, curses.COLOR_CYAN, curses.COLOR_CYAN)
     curses.init_pair(8, curses.COLOR_BLACK, curses.COLOR_GREEN)
     curses.init_pair(9, curses.COLOR_BLACK, curses.COLOR_RED)
+    curses.init_pair(10, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
 
 
 def safe_addstr(stdscr: 'curses.window', y: int, x: int,
@@ -122,19 +124,37 @@ def draw_menu(stdscr: 'curses.window',
     """Draw the controls menu below the maze."""
     menu_y = maze_height * CELL_HEIGHT + 2
     max_y, _ = stdscr.getmaxyx()
-    if menu_y + 1 >= max_y:
+    if menu_y + 4 >= max_y:
         return
 
     color_text = COLOR_NAMES[color_index]
     pattern_text = PATTERN_COLOR_NAMES[pattern_index]
 
     safe_addstr(stdscr, menu_y, 0,
-                "[R] Regenerate  [C] Change Color  [Q] Quit "
-                "[T] Change 42 Color\n", curses.A_BOLD)
+                "[R] Regenerate       [Q] Quit", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 1, 0,
+                "[T] Change 42 Color  [C] Change Color", curses.A_BOLD)
+    safe_addstr(stdscr, menu_y + 2, 0,
+                "[P] Show Path        [H] Hide Path", curses.A_BOLD)
+    safe_addstr(stdscr, menu_y + 3, 0,
                 f"Wall: {color_text}", curses.A_BOLD)
-    safe_addstr(stdscr, menu_y + 1, 20,
+    safe_addstr(stdscr, menu_y + 4, 0,
                 f"42: {pattern_text}", curses.A_BOLD)
+
+
+def draw_path(stdscr: 'curses.window', path, count: int,
+              entry: Tuple[int, int], exit_pos: Tuple[int, int]) -> None:
+    """Draw only the first 'count' cells of the path."""
+    path_attr = curses.color_pair(10)
+
+    for (x, y) in path[:count]:
+        if (x, y) == entry or (x, y) == exit_pos:
+            continue
+
+        screen_x = x * CELL_WIDTH + 2
+        screen_y = y * CELL_HEIGHT + 1
+
+        safe_addstr(stdscr, screen_y, screen_x, "   ", path_attr)
 
 
 def generate_maze(width: int, height: int, entry: Tuple[int, int],
@@ -163,6 +183,10 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
 
     maze = generate_maze(width, height, entry, exit_pos, perfect, seed)
 
+    path = find_the_way(maze)
+    show_path = False
+    path_progress = 0
+
     color_index: int = 0
     color_list: List[int] = [1, 2, 3, 4]
 
@@ -173,6 +197,10 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
         stdscr.clear()
         draw_maze(stdscr, maze, color_list[color_index],
                   pattern_colors[pattern_index])
+
+        if show_path and path:
+            draw_path(stdscr, path, path_progress, maze.entry, maze.exit)
+
         draw_menu(stdscr, color_index, pattern_index, maze.height)
         stdscr.refresh()
 
@@ -183,10 +211,31 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
         elif key in (ord('r'), ord('R')):
             seed = random.randint(1, 9999)
             maze = generate_maze(width, height, entry, exit_pos, perfect, seed)
+            path = find_the_way(maze)
+            show_path = False
+            path_progress = 0
         elif key in (ord('c'), ord('C')):
             color_index = (color_index + 1) % len(color_list)
         elif key in (ord('t'), ord('T')):
             pattern_index = (pattern_index + 1) % len(pattern_colors)
+        elif key in (ord('p'), ord('P')):
+            if path and not show_path:
+                show_path = True
+                path_progress = 0
+
+                for i in range(1, len(path) + 1):
+                    path_progress = i
+                    stdscr.clear()
+                    draw_maze(stdscr, maze, color_list[color_index],
+                              pattern_colors[pattern_index])
+                    draw_path(stdscr, path, path_progress,
+                              maze.entry, maze.exit)
+                    draw_menu(stdscr, color_index, pattern_index, maze.height)
+                    stdscr.refresh()
+                    curses.napms(80)
+        elif key in (ord('h'), ord('H')):
+            show_path = False
+            path_progress = 0
 
 
 def run_display(config: Dict[str, Any]) -> None:

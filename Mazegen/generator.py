@@ -1,5 +1,5 @@
 import random
-from show_the_exit import find_the_way, print_maze_with_path
+from .show_the_exit import find_the_way
 
 
 class MazeGenerator:
@@ -204,7 +204,6 @@ if __name__ == "__main__":
     path = find_the_way(mg)
     if path:
         print("\nSUCCESS! Here is the path:")
-        print_maze_with_path(mg, path)
         print(f"Total steps: {len(path)}")
     else:
         print("No path found.")
