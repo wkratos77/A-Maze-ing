@@ -2,7 +2,7 @@ import sys
 from typing import Any
 
 from Visualisation.parsing import parse_config
-from Mazegen.generator import MazeGenerator
+from mazegen.generator import MazeGenerator
 from Visualisation.display import run_display
 
 

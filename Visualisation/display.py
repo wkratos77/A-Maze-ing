@@ -1,9 +1,8 @@
 import curses
 import random
 from typing import List, Tuple, Dict, Any
-from Mazegen.generator import MazeGenerator
-from Mazegen.show_the_exit import find_the_way
-
+from mazegen.generator import MazeGenerator
+from mazegen.show_the_exit import find_the_way
 
 COLOR_NAMES: List[str] = ["White", "Green", "Red", "Blue"]
 PATTERN_COLOR_NAMES = ["Yellow", "Cyan", "Green BG", "Red BG"]
