@@ -35,7 +35,7 @@ def main() -> None:
         else:
             generator.generate_imperfect_maze()
 
-        run_display(config)
+        run_display(config, generator)
 
     except Exception as e:
         print(f"Error: {e}")

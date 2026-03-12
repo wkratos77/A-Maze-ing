@@ -170,7 +170,8 @@ def generate_maze(width: int, height: int, entry: Tuple[int, int],
     return gen
 
 
-def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
+def main_loop(stdscr: 'curses.window', config: Dict[str, Any],
+              maze: MazeGenerator) -> None:
     """Main loop: draw the maze and menu, wait for a key, handle it."""
     setup_colors()
 
@@ -180,8 +181,6 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
     exit_pos: Tuple[int, int] = config['EXIT']
     perfect: bool = config['PERFECT']
     seed: int = config['SEED']
-
-    maze = generate_maze(width, height, entry, exit_pos, perfect, seed)
 
     path = find_the_way(maze)
     show_path = False
@@ -238,9 +237,10 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any]) -> None:
             path_progress = 0
 
 
-def run_display(config: Dict[str, Any]) -> None:
+def run_display(config: Dict[str, Any],
+                maze: MazeGenerator) -> None:
     """Entry point: start the curses visualizer."""
     try:
-        curses.wrapper(lambda stdscr: main_loop(stdscr, config))
+        curses.wrapper(lambda stdscr: main_loop(stdscr, config, maze))
     except KeyboardInterrupt:
         pass
