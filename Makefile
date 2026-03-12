@@ -18,13 +18,13 @@ clean:
 
 lint:
 	flake8 .
-	mypy a_maze_ing.py --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	mypy a_maze_ing.py mazegen visualisation --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
 	flake8 .
-	mypy a_maze_ing.py --strict
+	mypy a_maze_ing.py mazegen visualisation --strict
 
 build:
 	python3 -m build
-	cp ./dist/mazegen-1.0.0-py3-none-any.whl ./
-	rm -rf dist
+	cp ./dist/mazegen-1.0.0.tar.gz ./mazegen.tar.gz
+	rm -rf build dist
