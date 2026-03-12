@@ -18,11 +18,11 @@ clean:
 
 lint:
 	flake8 .
-	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	mypy a_maze_ing.py --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
 	flake8 .
-	mypy . --strict
+	mypy a_maze_ing.py --strict
 
 build:
 	python3 -m build

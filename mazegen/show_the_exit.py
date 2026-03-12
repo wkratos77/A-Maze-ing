@@ -1,13 +1,17 @@
 from collections import deque
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .generator import MazeGenerator
 
 
-def find_the_way(mg):
+def find_the_way(mg: 'MazeGenerator') -> Optional[list[tuple[int, int]]]:
     start = mg.entry
     goal = mg.exit
 
-    queue = deque([start])
-    visited = {start}
-    parent = {start: None}
+    queue: deque[tuple[int, int]] = deque([start])
+    visited: set[tuple[int, int]] = {start}
+    parent: dict[tuple[int, int], Optional[tuple[int, int]]] = {start: None}
 
     # North=1, East=2, South=4, West=8
     directions = [
@@ -22,10 +26,11 @@ def find_the_way(mg):
 
         if (curr_x, curr_y) == goal:
             path = []
-            temp = goal
+            temp: Optional[tuple[int, int]] = goal
             while temp is not None:
                 path.append(temp)
-                temp = parent[temp]  # move to the parent
+                # move to the parent
+                temp = parent[temp]
             return path[::-1]  # reverse the path start to exit
         # the path was reversed from the deque so we reversed back
         for dx, dy, mask in directions:

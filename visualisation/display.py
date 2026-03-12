@@ -141,8 +141,9 @@ def draw_menu(stdscr: 'curses.window',
                 f"42: {pattern_text}", curses.A_BOLD)
 
 
-def draw_path(stdscr: 'curses.window', path, count: int,
-              entry: Tuple[int, int], exit_pos: Tuple[int, int]) -> None:
+def draw_path(stdscr: 'curses.window', path: list[tuple[int, int]],
+              count: int, entry: Tuple[int, int],
+              exit_pos: Tuple[int, int]) -> None:
     """Draw only the first 'count' cells of the path."""
     path_attr = curses.color_pair(10)
 

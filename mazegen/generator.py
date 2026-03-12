@@ -1,10 +1,11 @@
 import random
-from .show_the_exit import find_the_way
+from mazegen.show_the_exit import find_the_way
 
 
 class MazeGenerator:
-    def __init__(self, largeur, hauteur, seed: int, entry=(0, 0),
-                 exit=None, perfect: bool = True):
+    def __init__(self, largeur: int, hauteur: int, seed: int,
+                 entry: tuple[int, int] = (0, 0), exit: tuple[int, int] | None
+                 = None, perfect: bool = True) -> None:
         self.width = largeur
         self.height = hauteur
         if exit is None:
@@ -16,13 +17,14 @@ class MazeGenerator:
         self.seed = seed
         random.seed(seed)
         # WALID: this stores all (x, y) cells of the 42
-        self.pattern_42 = set()
+        self.pattern_42: set[tuple[int, int]] = set()
 
         # Initialisation : 15 signifie que les 4 murs sont fermés (1+2+4+8)
         self.grid = [[15 for _ in range(largeur)] for _ in range(hauteur)]
         self.visite = [[False for _ in range(largeur)] for _ in range(hauteur)]
 
-    def validate_point(self, point, name):
+    def validate_point(self, point: tuple[int, int],
+                       name: str) -> tuple[int, int]:
         """Validate the coordonates taken"""
         if not isinstance(point, tuple) or len(point) != 2:
             raise ValueError(f"{name} must be a tuple (x, y)")
@@ -36,7 +38,7 @@ class MazeGenerator:
             )
         return point
 
-    def showing_42(self):
+    def showing_42(self) -> None:
         """showing '42' at the center"""
         if self.width < 11 or self.height < 7:
             raise ValueError("Grid too small to show'42'")
@@ -79,7 +81,8 @@ class MazeGenerator:
                 # WALID: this remembers that this cell is part of the 42
                 self.pattern_42.add((x, y))
 
-    def generate_perfect_maze(self, start_x=None, start_y=None):
+    def generate_perfect_maze(self, start_x: int | None = None, start_y: int |
+                              None = None) -> None:
         """ Génère  en respectant les murs Nord=1, Est=2, Sud=4, Ouest=8 """
         self.showing_42()
         if self.entry in self.pattern_42:
@@ -135,7 +138,8 @@ class MazeGenerator:
             else:
                 pile.pop()  # On revient en arrière (Backtracking)
 
-    def generate_imperfect_maze(self, start_x=None, start_y=None):
+    def generate_imperfect_maze(self, start_x: int | None = None, start_y: int
+                                | None = None) -> None:
         """Generate a maze with loops (more than one path between points)."""
         # building a maze, then removing some walls
         self.generate_perfect_maze(start_x=start_x, start_y=start_y)
@@ -173,7 +177,7 @@ class MazeGenerator:
             self.grid[y][x] -= m_actuel
             self.grid[ny][nx] -= m_voisin
 
-    def afficher_ascii(self):
+    def afficher_ascii(self) -> None:
         for y in range(self.height):
             # Ligne des murs Nord
             ligne_n = ""
