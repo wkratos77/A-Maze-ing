@@ -6,6 +6,7 @@ from mazegen.show_the_exit import find_the_way
 
 COLOR_NAMES: List[str] = ["White", "Green", "Red", "Blue"]
 PATTERN_COLOR_NAMES = ["Yellow", "Cyan", "Green BG", "Red BG"]
+PATH_COLOR_NAMES = ["Magenta BG", "Yellow BG"]
 
 CELL_WIDTH = 5
 CELL_HEIGHT = 2
@@ -19,7 +20,7 @@ def setup_colors() -> None:
     curses.init_pair(2, curses.COLOR_GREEN, -1)
     curses.init_pair(3, curses.COLOR_RED, -1)
     curses.init_pair(4, curses.COLOR_BLUE, -1)
-    curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+    curses.init_pair(5, curses.COLOR_MAGENTA, curses.COLOR_YELLOW)
     curses.init_pair(6, curses.COLOR_MAGENTA, -1)
     curses.init_pair(7, curses.COLOR_CYAN, curses.COLOR_CYAN)
     curses.init_pair(8, curses.COLOR_BLACK, curses.COLOR_GREEN)
@@ -119,7 +120,9 @@ def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
 
 
 def draw_menu(stdscr: 'curses.window',
-              color_index: int, pattern_index: int, maze_height: int) -> None:
+              color_index: int, pattern_index: int, path_index: int,
+              maze_height: int,
+              ) -> None:
     """Draw the controls menu below the maze."""
     menu_y = maze_height * CELL_HEIGHT + 2
     max_y, _ = stdscr.getmaxyx()
@@ -128,24 +131,28 @@ def draw_menu(stdscr: 'curses.window',
 
     color_text = COLOR_NAMES[color_index]
     pattern_text = PATTERN_COLOR_NAMES[pattern_index]
+    path_text = PATH_COLOR_NAMES[path_index]
 
     safe_addstr(stdscr, menu_y, 0,
                 "[R] Regenerate       [Q] Quit", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 1, 0,
-                "[T] Change 42 Color  [C] Change Color", curses.A_BOLD)
+                "[T] Change 42 Color  [C] Change Color  "
+                "[Y] Change Path Color", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 2, 0,
                 "[P] Show Path        [H] Hide Path", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 3, 0,
                 f"Wall: {color_text}", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 4, 0,
                 f"42: {pattern_text}", curses.A_BOLD)
+    safe_addstr(stdscr, menu_y + 5, 0,
+                f"Path: {path_text}", curses.A_BOLD)
 
 
 def draw_path(stdscr: 'curses.window', path: list[tuple[int, int]],
               count: int, entry: Tuple[int, int],
-              exit_pos: Tuple[int, int]) -> None:
+              exit_pos: Tuple[int, int], path_color: int) -> None:
     """Draw only the first 'count' cells of the path."""
-    path_attr = curses.color_pair(10)
+    path_attr = curses.color_pair(path_color) | curses.A_BOLD
 
     for (x, y) in path[:count]:
         if (x, y) == entry or (x, y) == exit_pos:
@@ -192,15 +199,19 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any],
     pattern_colors = [5, 7, 8, 9]
     pattern_index = 0
 
+    path_colors: List[int] = [10, 5]
+    path_index = 0
+
     while True:
         stdscr.clear()
         draw_maze(stdscr, maze, color_list[color_index],
                   pattern_colors[pattern_index])
 
         if show_path and path:
-            draw_path(stdscr, path, path_progress, maze.entry, maze.exit)
+            draw_path(stdscr, path, path_progress, maze.entry, maze.exit,
+                      path_colors[path_index])
 
-        draw_menu(stdscr, color_index, pattern_index, maze.height)
+        draw_menu(stdscr, color_index, pattern_index, path_index, maze.height)
         stdscr.refresh()
 
         key = stdscr.getch()
@@ -228,13 +239,16 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any],
                     draw_maze(stdscr, maze, color_list[color_index],
                               pattern_colors[pattern_index])
                     draw_path(stdscr, path, path_progress,
-                              maze.entry, maze.exit)
-                    draw_menu(stdscr, color_index, pattern_index, maze.height)
+                              maze.entry, maze.exit, path_colors[path_index])
+                    draw_menu(stdscr, color_index, pattern_index,
+                              path_index, maze.height)
                     stdscr.refresh()
                     curses.napms(80)
         elif key in (ord('h'), ord('H')):
             show_path = False
             path_progress = 0
+        elif key in (ord('y'), ord('Y')):
+            path_index = (path_index + 1) % len(path_colors)
 
 
 def run_display(config: Dict[str, Any],

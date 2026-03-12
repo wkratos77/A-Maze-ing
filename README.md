@@ -69,7 +69,7 @@ P       |solve path
 H       |hide path
 C       |change color
 T       |change 42 color
-
+Y       |change path color
 ---
 
 ## Linting
