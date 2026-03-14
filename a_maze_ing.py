@@ -1,4 +1,3 @@
-from logging import config
 import sys
 from typing import Any
 
@@ -20,6 +19,26 @@ def build_generator(config: dict[str, Any]) -> MazeGenerator:
     )
 
 
+def path_to_directions(path: list[tuple[int, int]]) -> str:
+    """Convert a coordinate path into N/E/S/W directions."""
+    directions = []
+
+    for i in range(1, len(path)):
+        prev_x, prev_y = path[i - 1]
+        curr_x, curr_y = path[i]
+
+        if curr_x == prev_x and curr_y == prev_y - 1:
+            directions.append("N")
+        elif curr_x == prev_x + 1 and curr_y == prev_y:
+            directions.append("E")
+        elif curr_x == prev_x and curr_y == prev_y + 1:
+            directions.append("S")
+        elif curr_x == prev_x - 1 and curr_y == prev_y:
+            directions.append("W")
+
+    return "".join(directions)
+
+
 def write_output_file(filename: str, maze: MazeGenerator,
                       path: list[tuple[int, int]]) -> None:
     """Write the maze and path in hexadecimal to a text file.
@@ -35,18 +54,19 @@ def write_output_file(filename: str, maze: MazeGenerator,
             - Exit coordinates
             - Solution path (N, E, S, W moves)
     """
-    with open(filename, 'w') as f:
-        # Write maze in hexadecimal
-        for row in maze:
-            f.write(''.join(format(cell, '') for cell in row) + '\n')
-        f.write('\n')
-        # Write entry coordinates
-        f.write(f"{maze.entry}\n")
-        # Write exit coordinates
-        f.write(f"{maze.exit}\n")
-        # Write solution path
-        f.write("".join(move for move in path) + "\n")
-        
+    path_string = path_to_directions(path)
+    entry_x, entry_y = maze.entry
+    exit_x, exit_y = maze.exit
+
+    with open(filename, "w", encoding="utf-8") as file:
+        for row in maze.grid:
+            hex_row = "".join(format(cell, "X") for cell in row)
+            file.write(hex_row + "\n")
+
+        file.write("\n")
+        file.write(f"{entry_x},{entry_y}\n")
+        file.write(f"{exit_x},{exit_y}\n")
+        file.write(path_string + "\n")
 
 
 def main() -> None:
@@ -62,12 +82,14 @@ def main() -> None:
         generator = build_generator(config)
 
         if config["PERFECT"]:
-            maze = generator.generate_perfect_maze()
+            generator.generate_perfect_maze()
         else:
-            maze = generator.generate_imperfect_maze()
+            generator.generate_imperfect_maze()
 
-        path = find_the_way(maze, config["ENTRY"], config["EXIT"])
-        write_output_file(config["OUTPUT_FILE"], generator, path)
+        path = find_the_way(generator)
+        if "OUTPUT_FILE" in config and config["OUTPUT_FILE"]:
+            write_output_file(config["OUTPUT_FILE"], generator, path)
+        
         run_display(config, generator)
 
     except Exception as e:
