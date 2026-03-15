@@ -7,6 +7,7 @@ from mazegen.show_the_exit import find_the_way
 COLOR_NAMES: List[str] = ["White", "Green", "Red", "Blue"]
 PATTERN_COLOR_NAMES = ["Yellow", "Cyan", "Green BG", "Red BG"]
 PATH_COLOR_NAMES = ["Magenta BG", "Yellow BG"]
+ENTRY_EXIT_COLOR_NAMES = ["Magenta", "Yellow"]
 
 CELL_WIDTH = 5
 CELL_HEIGHT = 2
@@ -26,6 +27,7 @@ def setup_colors() -> None:
     curses.init_pair(8, curses.COLOR_BLACK, curses.COLOR_GREEN)
     curses.init_pair(9, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(10, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+    curses.init_pair(11, curses.COLOR_YELLOW, -1)
 
 
 def safe_addstr(stdscr: 'curses.window', y: int, x: int,
@@ -51,10 +53,11 @@ def has_wall(cell_value: int, direction: str) -> bool:
 
 
 def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
-              wall_color: int, pattern_color: int) -> None:
+              wall_color: int, pattern_color: int,
+              entry_exit_color: int) -> None:
     """Draw the maze walls and cell contents on screen."""
     wall_attr = curses.color_pair(wall_color)
-    entry_attr = curses.color_pair(6) | curses.A_BOLD
+    entry_attr = curses.color_pair(entry_exit_color) | curses.A_BOLD
     pattern_attr = curses.color_pair(pattern_color)
     entry_x, entry_y = maze.entry
     exit_x, exit_y = maze.exit
@@ -121,31 +124,36 @@ def draw_maze(stdscr: 'curses.window', maze: MazeGenerator,
 
 def draw_menu(stdscr: 'curses.window',
               color_index: int, pattern_index: int, path_index: int,
-              maze_height: int,
-              ) -> None:
+              entry_exit_index: int, maze_height: int) -> None:
     """Draw the controls menu below the maze."""
     menu_y = maze_height * CELL_HEIGHT + 2
     max_y, _ = stdscr.getmaxyx()
-    if menu_y + 4 >= max_y:
+    if menu_y + 8 >= max_y:
         return
 
     color_text = COLOR_NAMES[color_index]
     pattern_text = PATTERN_COLOR_NAMES[pattern_index]
     path_text = PATH_COLOR_NAMES[path_index]
+    entry_exit_text = ENTRY_EXIT_COLOR_NAMES[entry_exit_index]
 
     safe_addstr(stdscr, menu_y, 0,
-                "[R] Regenerate       [Q] Quit", curses.A_BOLD)
+                "[R] Regenerate       [Q] Quit          "
+                "[E] Change Entry/Exit Color", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 1, 0,
                 "[T] Change 42 Color  [C] Change Color  "
                 "[Y] Change Path Color", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 2, 0,
                 "[P] Show Path        [H] Hide Path", curses.A_BOLD)
-    safe_addstr(stdscr, menu_y + 3, 0,
-                f"Wall: {color_text}", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 4, 0,
-                f"42: {pattern_text}", curses.A_BOLD)
+                "Current Colors:", curses.A_BOLD)
     safe_addstr(stdscr, menu_y + 5, 0,
+                f"Wall: {color_text}", curses.A_BOLD)
+    safe_addstr(stdscr, menu_y + 6, 0,
+                f"42: {pattern_text}", curses.A_BOLD)
+    safe_addstr(stdscr, menu_y + 7, 0,
                 f"Path: {path_text}", curses.A_BOLD)
+    safe_addstr(stdscr, menu_y + 8, 0,
+                f"Entry/Exit: {entry_exit_text}", curses.A_BOLD)
 
 
 def draw_path(stdscr: 'curses.window', path: list[tuple[int, int]],
@@ -202,16 +210,21 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any],
     path_colors: List[int] = [10, 5]
     path_index = 0
 
+    entry_exit_colors: List[int] = [6, 11]
+    entry_exit_index = 0
+
     while True:
         stdscr.clear()
         draw_maze(stdscr, maze, color_list[color_index],
-                  pattern_colors[pattern_index])
+                  pattern_colors[pattern_index],
+                  entry_exit_colors[entry_exit_index])
 
         if show_path and path:
             draw_path(stdscr, path, path_progress, maze.entry, maze.exit,
                       path_colors[path_index])
 
-        draw_menu(stdscr, color_index, pattern_index, path_index, maze.height)
+        draw_menu(stdscr, color_index, pattern_index,
+                  path_index, entry_exit_index, maze.height)
         stdscr.refresh()
 
         key = stdscr.getch()
@@ -237,11 +250,12 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any],
                     path_progress = i
                     stdscr.clear()
                     draw_maze(stdscr, maze, color_list[color_index],
-                              pattern_colors[pattern_index])
+                              pattern_colors[pattern_index],
+                              entry_exit_colors[entry_exit_index])
                     draw_path(stdscr, path, path_progress,
                               maze.entry, maze.exit, path_colors[path_index])
                     draw_menu(stdscr, color_index, pattern_index,
-                              path_index, maze.height)
+                              path_index, entry_exit_index, maze.height)
                     stdscr.refresh()
                     curses.napms(80)
         elif key in (ord('h'), ord('H')):
@@ -249,6 +263,8 @@ def main_loop(stdscr: 'curses.window', config: Dict[str, Any],
             path_progress = 0
         elif key in (ord('y'), ord('Y')):
             path_index = (path_index + 1) % len(path_colors)
+        elif key in (ord('e'), ord('E')):
+            entry_exit_index = (entry_exit_index + 1) % len(entry_exit_colors)
 
 
 def run_display(config: Dict[str, Any],

@@ -87,9 +87,11 @@ def main() -> None:
             generator.generate_imperfect_maze()
 
         path = find_the_way(generator)
+        if path is None:
+            raise RuntimeError("No path found from entry to exit")
         if "OUTPUT_FILE" in config and config["OUTPUT_FILE"]:
             write_output_file(config["OUTPUT_FILE"], generator, path)
-        
+
         run_display(config, generator)
 
     except Exception as e:
